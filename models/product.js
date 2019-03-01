@@ -1,3 +1,11 @@
+/* 
+    Please, note that the return value 
+    from collection('products), particualry(findById of class function)
+    is not the instance
+
+    The instances are returned only when we use mongoose.
+*/
+
 // To get class to generate 'id' intance
 const { ObjectId } = require('mongodb');
 
@@ -98,7 +106,7 @@ class Product {
 
         return db.collection('products').find({ _id : new ObjectId (id) }).next()
             .then(product => {
-                console.log('product : ===========================>', product)
+                // console.log('product : ===========================>', product)
                 return product;
             })
             .catch(e => { throw new Error ('Unable to get a product.'); });

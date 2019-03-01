@@ -28,10 +28,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use((req, res, next) => {
     
     User.fetchAll().then(users => {
-        if(users.length > 0) {
 
-            console.log(`${ users[0].username } just signed in!` );
-            req.user = users[0];
+        if(users.length > 0) {
+            // In mongoDB, not mongoose, it must be intantiated.
+            // In mongoose, the find function always returs an instance.
+            req.user = new User (users[0].username, users[0].email, users[0].cart, users[0]._id);
 
             next();
 
@@ -43,7 +44,7 @@ app.use((req, res, next) => {
                     console.log('Joon is signed up!');
                     return User.findById(newUser._id)
                         .then(user => {
-                            req.user = user;
+                            req.user = new User (user.username, user.email);
                         });
                 })
                 .then(() => {

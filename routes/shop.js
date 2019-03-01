@@ -21,14 +21,14 @@ router.get('/products', getProducts);
 
 router.get('/products/:id', getProduct);
 
-// // to have all items in cart
-// router.get('/cart', getCart);
+// to have all items in cart
+router.get('/cart', getCart);
 
-// // to add a product to '/cart'
-// router.post('/cart', postCart);
+// to add a product to '/cart'
+router.post('/cart', postCart);
 
-// // to delete a product only in '/shop/cart'
-// router.post('/cartDeleteItem', postCartDeleteItem);
+// to delete a product only in '/shop/cart'
+router.post('/cartDeleteItem', postCartDeleteItem);
 
 // // to add user-order
 // router.post('/createOrders', postOrder);

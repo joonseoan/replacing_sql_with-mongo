@@ -71,106 +71,19 @@ exports.getIndex = (req, res, next) => {
  // Add to Cart button
  exports.postCart = (req, res, next) => {
 
-    let fetchCart;
-
-    // product id
     const { id } = req.body;
 
-    let newQty = 1;
+    Product.findById(id)
+        .then(product =>{
 
-    req.user.getCart()
-        .then(cart => {
-
-            fetchCart = cart;
-
-            // console.log(cart.getProducts());
-            // based on product id, products has an element, it is an array, though.
-            return cart.getProducts({ where: { id } });
-        })
-        .then(products => {
-            
-            let product;
-            
-            if(products.length > 0) {
-
-                // based on product id, products has an element.
-                product = products[0];
-
-            }
-            
-            // handling the exisiting product,
-            //      we just need to update the qty.
-            if(product) {
-                
-                // through instance, update attibute of the class
-                // can be "cart.cartItems.qty" as well.
-
-                // as soon as addProdct(product, { through { qty: newQty } }) excutes,
-                // cartitems assigned to 'product' and 'cart'
-                const oldQty = product.cartItems.qty;
-                newQty = oldQty + 1;
-                
-                // just update is required.
-                // just fetch all data associated with productId in that table 
-                //  and update qty in the table.
-                // return fetchCart.addProduct(product, { through : { qty: newQty } });
-                
-                // refactoring
-                return product;
-
-            } 
-
-            // Because for now, we do not have any product,
-            // For the first product in cart
-            return Product.findByPk(id);
-                // .then(product => {
-                    
-                    // How to fetch this data?
-                    
-                     // The first parameter: fetch all information asscociated productId
-                     // The second paramter: update the through table (cartItems) by using Deep clone 
-                     //     is required for the qty
-
-                     // The it will be stored like the one below.
-                     /* 
-                    
-                        product {
-                            dataValues:
-                            { id: 1,
-                                title: 'aaa',
-                                price: 111,
-                                imageUrl: 'aaa',
-                                description: 'afasfa',
-                                createdAt: 2019-02-23T04:30:10.000Z,
-                                updatedAt: 2019-02-23T04:30:10.000Z,
-                                userId: 1,
-                                //********************************************* 
-                                cartItems: [cartItems] 
-                            }
-                            
-                    */
-                    // return fetchCart.addProduct(product, { through: {qty : newQty }});
-                // });
-
-        })
-        .then(product => {
-            
-            // The first parameter: fetch all information asscociated productId
-            // The second paramter: update the through table (cartItems) by using Deep clone 
-            //     is required for the qty
-            
-            // product.cartItems.qty is for updating attributes in class by using instance
-            // It is for executing a function inside of the class
-
-            // Hence, it is not working : it is not a format of addProduct function
-            // return fetchCart.addProduct(product, through[qty] = newQty );
-            return fetchCart.addProduct(product, { through: { qty: newQty } });
-            
+            // At this moment, product has the userId number
+            return req.user.addToCart(product);
         })
         .then(() => {
+
             res.redirect('./cart');
         })
-        .catch(e => console.log(e));
+        .catch(e => {throw new Error('Unable to add the product to your cart.')})
 
 }
 
@@ -179,67 +92,16 @@ exports.getCart = (req, res, next) => {
 
     // We must use req.user.getCart();
     req.user.getCart()
-        .then(cart => {
-
-            /* 
-            
-                    cart {
-                        dataValues:
-                        { id: 1,
-                            createdAt: 2019-02-23T04:06:27.000Z,
-                            updatedAt: 2019-02-23T04:06:27.000Z,
-                            userId: 1 
-                        }
-            
-            */
-            // console.log(cart);
-            
-            /* 
-                Purlal 's' of getProducts() is because of many to many association
-                Only in many to many association, it enables us 
-                to make getCarts(); and also getProducts() through CartItems.
-                
-                // product.get/set/addCarts() and addCart()
-                Cart.belongsToMany(Product, { through: CartItems });
-
-                // cart.get/set/addProducts() and addProduct()
-                Product.belongsToMany(Cart, { through: CartItems });
-            */
-            if(cart) return cart.getProducts();
-        })
         .then(products => {
 
-            /* 
-                [ product {
-                    dataValues:
-                    { id: 1,
-                    title: 'aaa',
-                    price: 111,
-                    imageUrl: 'aaa',
-                    description: 'afasfa',
-                    createdAt: 2019-02-23T04:30:10.000Z,
-                    updatedAt: 2019-02-23T04:30:10.000Z,
-                    userId: 1,
-                    cartItems: [cartItems] },
-                     { id: 2,
-                    title: 'bbb',
-                    price: 33,
-                    imageUrl: 'bbb',
-                    description: 'bbb',
-                    createdAt: 2019-02-23T05:22:35.000Z,
-                    updatedAt: 2019-02-23T05:22:35.000Z,
-                    userId: 1,
-                    cartItems: [cartItems] }
-                ]      
-            
-            */
-            // console.log('products: ====================================================> ', products)
+            console.log('reallty ------------------->', products)
             
             res.render('shop/cart', {
                 docTitle: 'Your Cart',
                 path: '/cart',
                 products
             });
+
         })
         .catch(e => console.log(e));
     
@@ -387,47 +249,13 @@ exports.postCartDeleteItem = ( req, res, next) => {
 
     const { id }= req.body;
 
-    req.user.getCart().then(cart => {
-        return cart.getProducts({ where : { id }});
-    })
-    .then(products =>{
-        const product = products[0];
-        // delete cartItems inside of
-        /* 
-
-            dataValues:
-                { id: 1,
-                    title: 'aaa',
-                    price: 111,
-                    imageUrl: 'aaa',
-                    description: 'afasfa',
-                    createdAt: 2019-02-23T04:30:10.000Z,
-                    updatedAt: 2019-02-23T04:30:10.000Z,
-                    userId: 1,
-                    //********************************************* 
-                    cartItems: [cartItems] 
-                }
-        
-        */
-        console.log('product.cartItems: ', product.cartItems);
-
-        // delete cartItems rows including qty if the rows are linked to productId
-        return product.cartItems.destroy();
-    })
-    .then(() => {
-        res.redirect('./cart');
-    })
-    .catch(err => {
-        console.log(err);
-    });
-
-    // With a json file only
-    // Product.findProductById(id, product => {
-    //     console.log('deleteCartPRODUCT ITEM: ', product)
-    //     Cart.deleteProduct(id, product.price);
-    //     res.redirect('/cart');
-    // });
-
+    req.user.deleteItemFromCart(id)
+        .then(() => {
+            // res.redirect('./cart');
+        })
+        .catch(e => {
+            throw new Error('Unable to delete.');
+        })
 }
 
 exports.getCheckout = (req, res, next) => {
