@@ -131,19 +131,85 @@ module.exports = class User {
     }
 
     deleteItemFromCart(prodId) {
+
         const updatedCartItems = this.cart.items.filter(item => 
             prodId.toString() !== item.productId.toString());
 
         const db = getDb();
-        return db.collection('users')
-            .updateOne({ 
+        return db.collection('users').updateOne({
+
                 _id: this._id 
+            
             }, 
             { $set: { 
                 cart : { items : updatedCartItems }
             }
         });
 
+    }
+
+    addOrder() {
+        const db = getDb();
+        // can create a collection and a document without class *****
+        //  because the helper functions are not required so far.
+
+        // adding user information
+        // call a function in this class
+        return this.getCart()
+            .then(products => {
+                const order = {
+
+                    // product: product info and qty
+                    items: products,
+                    user: {
+                        _id: this._id,
+                        username: this.username
+                    }
+                };
+
+                return db.collection('orders').insertOne(order);
+            
+            }).then(() => {
+
+                // newly renew this.cart in the instance
+                this.cart = { items: [] };
+
+                // make the user.cart cllection in the database empty.
+                return db.collection('users').updateOne({
+                    _id: this._id
+                }, {
+                    $set: { cart: { items: [] } }
+                })
+
+            })
+            .catch(e => { throw new Error('Order is successful!'); });
+
+    }
+
+    getOrders() {
+        const db = getDb();
+
+        //'user._id': it is a way to find the nested object
+        /* 
+            
+            user
+            :
+            Object
+            _id
+            :
+            5c798690e792393e80293c92
+            username
+            :
+            "joons"
+        
+        */
+       // 'user._id in orders collection that is created in addOrder
+       // this._id is the presetn order that the user signed up with
+
+       console.log('this._id', this._id)
+        return db.collection('orders')
+            .find({'user._id': this._id})
+            .toArray();
     }
 
     static findById(userId) {
@@ -171,4 +237,3 @@ module.exports = class User {
             });
     }
 }
-

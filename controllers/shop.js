@@ -111,91 +111,10 @@ exports.postOrder = (req, res, next) => {
     
     let fetchedCart;
     
-    req.user.getCart()
-        .then(cart => {
-            fetchedCart = cart;
-            return cart.getProducts();
-        })
-        .then(products => {
-            
-            // console.log('products ===============================================> ', products.cartItems)
-
-            // because Order.belongsTo(User);
-            // User.hasMany(Order);
-
-            // INSERT id with userId
-            //  because 'Order' table has 'id' only that automatically increments
-            return req.user.createOrder()
-                .then(order => {
-
-                    /* 
-                        {   
-                            id: 1,
-                            userId: 1,
-                            updatedAt: 2019-02-27T03:32:47.744Z,
-                            createdAt: 2019-02-27T03:32:47.744Z 
-                        }
-                    
-                    
-                    */
-                    console.log('order: ========================================> ', order)
-
-                    // Adding new products with orderItems row by row
-
-                    // => [1, 1]
-                    // const ddd = products.map(product => {
-                    //     return product.orderItems = {qty: product.cartTiems.qty };
-                    // });
-                    return order.addProducts(products.map(product => {
-
-                        /* 
-                            {   
-                                
-                                id: 1,
-                                title: 'aaa',
-                                price: 22,
-                                imageUrl: 'aaa',
-                                description: 'aaa',
-                                createdAt: 2019-02-27T03:32:44.000Z,
-                                updatedAt: 2019-02-27T03:32:44.000Z,
-                                userId: 1,
-                                cartItems:
-                                cartItems {
-                                    dataValues: [Object],
-                                    _previousDataValues: [Object],
-                                    _changed: {},
-                                    _modelOptions: [Object],
-                                    _options: [Object],
-                                    __eagerlyLoadedAssociations: [],
-                                    isNewRecord: false } 
-                            }
-                        
-                        */
-
-                        // product.orderItems = { qty: product.cartItems.qty };
-                        product.addOrder(order, { through: { qty : product.cartItems.qty }});
-
-                        // return [ product, product ]
-                        return product;
-
-                        // Then run addProducts while we are fetching products
-
-                    }));                
-                
-                })
-                .catch(e => console.log(e));
-        
-        })
-        .then((orders) => {
-
-            // Once the order is done, 
-            //  'CartItems' is going to be empty.
-            return fetchedCart.setProducts(null);
-
-        })
+    req.user.addOrder()
         .then(() => {
 
-            res.redirect('./orders');
+            res.redirect('/orders');
         
         })
         .catch(e => console.log(e));
@@ -221,20 +140,10 @@ exports.getOrders = (req, res, next) => {
     // Therefore, getOrder invoke eagerLoading with include:['products]
     
     // 2) dried up statement
-    req.user.getOrders({ include: ['products']})
-    
-    // 1) based on the standard document
-    // req.user.getOrders({ include: {
-        //     model: Product
-        // }})
+    req.user.getOrders()
         .then(orders => {
 
-            //    [ {createdAt: 2019-02-27T05:43:54.000Z,
-            //         updatedAt: 2019-02-27T05:43:54.000Z,
-            //         userId: 1,
-            //         products: [Array] } ],
-            console.log('final products : =======================================================================> ', orders)
-
+            console.log('dddddddddddddd', orders)
             res.render('shop/orders', {
                 docTitle: 'Your Orders',
                 path: '/orders',
@@ -251,11 +160,15 @@ exports.postCartDeleteItem = ( req, res, next) => {
 
     req.user.deleteItemFromCart(id)
         .then(() => {
-            // res.redirect('./cart');
+
+            res.redirect('/cart');
+
         })
         .catch(e => {
+
             throw new Error('Unable to delete.');
-        })
+        
+        });
 }
 
 exports.getCheckout = (req, res, next) => {
