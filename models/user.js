@@ -157,6 +157,7 @@ module.exports = class User {
         // call a function in this class
         return this.getCart()
             .then(products => {
+
                 const order = {
 
                     // product: product info and qty
@@ -166,7 +167,8 @@ module.exports = class User {
                         username: this.username
                     }
                 };
-
+                // because it inserts data
+                // 'orders' collection have all order history.
                 return db.collection('orders').insertOne(order);
             
             }).then(() => {

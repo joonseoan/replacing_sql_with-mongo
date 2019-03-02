@@ -108,9 +108,7 @@ exports.getCart = (req, res, next) => {
 }
 
 exports.postOrder = (req, res, next) => {
-    
-    let fetchedCart;
-    
+        
     req.user.addOrder()
         .then(() => {
 
@@ -122,28 +120,10 @@ exports.postOrder = (req, res, next) => {
 }
 
 exports.getOrders = (req, res, next) => {
-    /* 
-        order in ejs ============================================> order {
-        have products ********************************
-        { 
-            id: 1,
-            createdAt: 2019-02-27T03:32:47.000Z,
-            updatedAt: 2019-02-27T03:32:47.000Z,
-            userId: 1,
-            products: [ [product] ] 
-        },    
-            
-    */
 
-    // one:many therefore, user.getOrder(x)
-    // Order : Product is a many to many
-    // Therefore, getOrder invoke eagerLoading with include:['products]
-    
-    // 2) dried up statement
     req.user.getOrders()
         .then(orders => {
 
-            console.log('dddddddddddddd', orders)
             res.render('shop/orders', {
                 docTitle: 'Your Orders',
                 path: '/orders',
